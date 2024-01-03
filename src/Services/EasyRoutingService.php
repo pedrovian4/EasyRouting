@@ -2,7 +2,7 @@
 
 namespace Petcha\EasyRouting\Services;
 
-class ControllerAnalyzer
+class EasyRoutingService
 {
 
 }
