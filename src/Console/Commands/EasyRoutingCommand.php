@@ -5,7 +5,10 @@ namespace Petcha\EasyRouting\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Petcha\EasyRouting\Facades\EasyRoutingGenerator;
+use Petcha\EasyRouting\Analyzers\NotationAnalyzer;
+use Petcha\EasyRouting\Contracts\NotationExceptionInterface;
+use Petcha\EasyRouting\Facades\NotationFacade;
+use Petcha\EasyRouting\Facades\RoutingFacade;
 
 class EasyRoutingCommand extends Command
 {
@@ -35,8 +38,13 @@ class EasyRoutingCommand extends Command
             $controllers = $this->getControllers($dir);
             $controller = $this->choice('Choose your controller: ',$controllers);
         }
-        $this->info("Analyzing Easy Notation on: <comment>$controller</comment>");
-
+        $this->info("Analyzing Easy Notation on: <comment>$controller</comment>".PHP_EOL);
+        try{
+            NotationFacade::analyze($controller);
+        }catch(NotationExceptionInterface $exception){
+            $this->error($exception->getVerboseMessage($controller));
+            die();
+        }
 
     }
 
