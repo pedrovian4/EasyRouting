@@ -42,7 +42,6 @@ class ClassAnalyzer implements NotationAnalyzerInterface {
             throw  new ClassNotationRouteTypeNotFound();
         }
 
-
         if ($this->nextAnalyzer) {
             return $this->nextAnalyzer->analyze($controllerClass);
         }

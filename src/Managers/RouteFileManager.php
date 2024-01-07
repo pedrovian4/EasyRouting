@@ -3,6 +3,7 @@
 namespace Petcha\EasyRouting\Managers;
 
 use JetBrains\PhpStorm\ArrayShape;
+use Petcha\EasyRouting\Exceptions\RouteRulesNotSeatedException;
 
 class RouteFileManager
 {
@@ -69,11 +70,12 @@ class RouteFileManager
     }
 
     /**
-     * @return array
+     * @return null
+     * @throws RouteRulesNotSeatedException
      */
-    public function addRoute()
+    public function addRoute(RouteNotationManager $route):void
     {
-
+        $this->routes[] = $route->getRoute();
     }
     public function getRoutes(): array
     {
