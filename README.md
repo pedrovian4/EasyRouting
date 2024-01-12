@@ -1,71 +1,63 @@
-# EasyRouting Library (In development)
+# EasyRouting Library
 
 EasyRouting is a Laravel package designed to simplify the routing process by automatically generating routes based on controller annotations. This library allows you to define your routes directly above your controller methods, making your routing more intuitive and centralized.
 
 ## Features
-
 - **Automatic Route Generation**: Generate routes directly from controller annotations.
 - **Flexible Configuration**: Easily configure routes with custom paths, HTTP methods, and middleware.
 - **Clean and Intuitive**: Keep your routes clean and understandable by defining them where they matter.
 
 
+## Configuration
+add this code to your `config/app.php`
+```php
+'providers' => [
+    // Other Service Providers
+    Petcha\EasyRouting\ServiceProvider::class,
+],
+```
 
 ## Usage
 
-
-### Annotate Your Controller
-
+To define routes, use annotations in your controller methods. Here's an example of a controller using EasyRouting notations (methods docs).
 ```php
-namespace App\Http\Controllers;
+<?php
 
+namespace App\Http\Controllers\Test;
+
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 /**
  * @API
- * @EasyRouting(prefix:'api/v1/easy', middlewares:['auth'])
- **/
-class MyController extends Controller
+ * @EasyRouting(prefix:'api/v1/easy', middlewares:[auth, guest, test], name:'easy')
+ */
+class EasyRoutingController extends Controller
 {
     /**
-     * @Easy(methods:['GET', 'POST'])
-     **/
+     * @Easy(methods:['GET', 'POST'], name:'index', middleware:[gest])
+     */
     public function index()
     {
     }
 
     /**
-     * @Easy(methods:['*'], path:'edit')
-     **/
+     * @Easy(methods:['PUT'], path:'edit', name:'edit')
+     */
     public function edit()
     {
     }
 
     /**
-     * @Easy(methods:['PATCH'], path:'store')
-     **/
+     * @Easy(methods:['PATCH'], path:'store', name:'store')
+     */
     public function store()
     {
     }
 }
 ```
-
-### Run the Command
-
-After annotating your controllers, use the following Artisan command to generate the routes:
-
-
+## Generating Routes
+Once your controllers are annotated, run the provided command to generate the route files:
 ```bash
 php artisan easy:routing
-
-# For a specific controller
-php artisan easy:routing --controller=App\\Http\\Controllers\\MyController
-
-# For controllers in a specific directory
-php artisan easy:routing --directory=subdirectory_name
-
 ```
-
-
-### Contributing
-
-Contributions are welcome! If you would like to help improve, fix, or discuss the EasyRouting library, please feel free to open an issue or submit a pull request on the project's GitHub repository.
