@@ -17,7 +17,8 @@ class RouteNotationManager
             "path"=>null,
             "methods"=>[],
             "name"=>null,
-            "middleware"=>[]
+            "middleware"=>[],
+            "function"=>null
         ];
     }
 
@@ -60,7 +61,15 @@ class RouteNotationManager
         $this->route['name'] = $name;
         return $this;
     }
-
+    /**
+     * @param string $function
+     * @return $this
+     */
+    public  function addFunction(string $function): static
+    {
+        $this->route['function'] = $function;
+        return $this;
+    }
     /**
      * @return ?string
      */

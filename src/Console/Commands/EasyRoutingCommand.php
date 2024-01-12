@@ -13,51 +13,88 @@ use Symfony\Component\VarDumper\VarDumper;
 
 class EasyRoutingCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'easy:routing {--controller= : The namespace of the controller to generate routes for}
                                       {--directory= : The subdirectory within Http/Controllers}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Don\'t bother with routes files anymore';
 
-
-
+    /**
+     * @return void
+     */
     public function handle(): void
     {
-        $controller = $this->option('controller');
-        $dir = $this->option('directory');
-
-        if(!$controller){
-            $controllers = $this->getControllers($dir);
-            $controller = $this->choice('Choose your controller: ',$controllers);
-        }
+        $controller = $this->option('controller') ?: $this->getControllerChoice($this->option('directory'));
         $this->info("Analyzing Easy Notation on: <comment>$controller</comment>".PHP_EOL);
-        try{
+        try {
             $analysisResult = NotationFacade::analyze($controller);
-            $prettyAnalysis = VarDumper::dump($analysisResult);
-            $this->info("$prettyAnalysis");
-        }catch(NotationExceptionInterface $exception){
+            $this->info(VarDumper::dump($analysisResult));
+            $this->createRouteFile($controller, $analysisResult);
+        } catch (NotationExceptionInterface $exception) {
             $this->error($exception->getVerboseMessage($controller));
-            die();
+            exit;
+        }
+    }
+
+    /**
+     * @param string|null $dir
+     * @return string
+     */
+    private function getControllerChoice(?string $dir): string
+    {
+        $controllers = $this->getControllers($dir);
+        return $this->choice('Choose your controller: ', $controllers);
+    }
+
+    /**
+     * @param string|null $dir
+     * @return array
+     */
+    private function getControllers(?string $dir): array
+    {
+        $controllerDir = app_path("Http/Controllers/$dir");
+        return array_map(fn($file) => Str::replace("/var/www/html/app/", "", $file), File::allFiles($controllerDir));
+    }
+
+    /**
+     * @param string $controller
+     * @param array $analysisResult
+     * @return void
+     */
+    private function createRouteFile(string $controller, array $analysisResult): void
+    {
+        $controller = Str::replace(".php", "", $controller);
+        $controllerName = class_basename($controller);
+        $fileName = strtolower(str_replace('Controller', '', $controllerName)) . '.php';
+        $directoryPath = base_path('routes/easy');
+
+        if (!File::isDirectory($directoryPath)) {
+            File::makeDirectory($directoryPath, 0777, true, true);
         }
 
+        $filePath = $directoryPath . '/' . $fileName;
+
+        $routeContent = "<?php\n\n";
+        $routeContent .= "Route::prefix('" . $analysisResult['controller']['path'] . "')\n";
+        $routeContent .= "    ->middleware([" . implode(',', array_map(fn($mw) => "'$mw'", $analysisResult['controller']['middleware'])) . "])\n";
+        $routeContent .= "    ->controller(App\\" . Str::replace("/", "\\", $controller) . "::class)\n";
+        $routeContent .= "    ->group(function () {\n";
+
+        foreach ($analysisResult['route'] as $route) {
+            $routeMethods = $route['methods'];
+            $routePath = $route['path'];
+            $routeName =  $analysisResult['controller']['name'] . '.'. $route['name'];
+            $methodName = $route['function'];
+            $middlewareArray = $route['middleware'];
+
+            $routeContent .= "        Route::match(['" . implode("', '", $routeMethods) . "'], '$routePath', '$methodName')->name('{$routeName}')";
+            if (!empty($middlewareArray)) {
+                $routeContent .= "->middleware([" . implode(',', array_map(fn($mw) => "'$mw'", $middlewareArray)) . "])";
+            }
+            $routeContent .= ";\n";
+        }
+        $routeContent .= "    });\n";
+
+        File::put($filePath, $routeContent);
+        $this->info("Route file created at: $filePath");
     }
-
-
-    private function getControllers(?string $dir):array
-    {
-        $baseControllerPath = "Http/Controllers/$dir";
-        $controllerDir = app_path($baseControllerPath);
-        return Str::replace("/var/www/html/app/", "",File::allFiles($controllerDir));
-    }
-
 
 }

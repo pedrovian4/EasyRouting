@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 use Petcha\EasyRouting\Analyzers\NotationAnalyzer;
 
 /**
- * @method static NotationAnalyzer analyze($controllerClass)
+ * @method static NotationAnalyzer|array analyze($controllerClass)
  * **/
 class NotationFacade extends Facade
 {
