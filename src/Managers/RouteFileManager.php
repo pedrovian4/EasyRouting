@@ -70,7 +70,8 @@ class RouteFileManager
     }
 
     /**
-     * @return null
+     * @param RouteNotationManager $route
+     * @return void
      * @throws RouteRulesNotSeatedException
      */
     public function addRoute(RouteNotationManager $route):void

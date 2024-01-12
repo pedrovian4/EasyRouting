@@ -9,6 +9,7 @@ use Petcha\EasyRouting\Analyzers\NotationAnalyzer;
 use Petcha\EasyRouting\Contracts\NotationExceptionInterface;
 use Petcha\EasyRouting\Facades\NotationFacade;
 use Petcha\EasyRouting\Facades\RoutingFacade;
+use Symfony\Component\VarDumper\VarDumper;
 
 class EasyRoutingCommand extends Command
 {
@@ -40,7 +41,9 @@ class EasyRoutingCommand extends Command
         }
         $this->info("Analyzing Easy Notation on: <comment>$controller</comment>".PHP_EOL);
         try{
-            NotationFacade::analyze($controller);
+            $analysisResult = NotationFacade::analyze($controller);
+            $prettyAnalysis = VarDumper::dump($analysisResult);
+            $this->info("$prettyAnalysis");
         }catch(NotationExceptionInterface $exception){
             $this->error($exception->getVerboseMessage($controller));
             die();

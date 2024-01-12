@@ -17,8 +17,9 @@ class NotationAnalyzer implements NotationAnalyzerInterface {
 
     /**
      * @throws ClassNotationNotFound|ClassNotationRouteTypeNotFound
+     * @throws \ReflectionException
      */
-    public function analyze($controller): NotationAnalyzerInterface|string {
+    public function analyze($controller): NotationAnalyzerInterface|array {
         return (new ClassAnalyzer())->analyze($controller);
     }
 

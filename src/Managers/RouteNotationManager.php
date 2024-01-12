@@ -25,7 +25,7 @@ class RouteNotationManager
      * @param string $path
      * @return RouteNotationManager
      */
-    public  function addPath(string $path): static
+    public function addPath(string $path): static
     {
         $this->route["path"] = $path;
         return $this;
@@ -98,7 +98,7 @@ class RouteNotationManager
      */
     public function getRoute(): array
     {
-        if(in_array(null,array_values($this->route))){
+        if(is_null($this->route["name"])){
             throw new RouteRulesNotSeatedException();
         }
         return $this->route;

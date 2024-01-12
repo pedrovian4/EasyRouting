@@ -3,10 +3,11 @@
 namespace Petcha\EasyRouting\Analyzers;
 
 use Illuminate\Support\Str;
-use Nwidart\Modules\Collection;
+use Illuminate\Support\Collection;
 use Petcha\EasyRouting\Contracts\NotationAnalyzerInterface;
 use Petcha\EasyRouting\Exceptions\ClassNotationNotFound;
 use Petcha\EasyRouting\Exceptions\ClassNotationRouteTypeNotFound;
+use Petcha\EasyRouting\Facades\RouteInfoFacade;
 use Petcha\EasyRouting\Utils\Docs;
 use ReflectionClass;
 
@@ -26,35 +27,44 @@ class ClassAnalyzer implements NotationAnalyzerInterface {
     /**
      * @throws ClassNotationNotFound
      * @throws ClassNotationRouteTypeNotFound
+     * @throws \ReflectionException
      */
-    public function analyze($controller): NotationAnalyzerInterface|string
+    public function analyze($controller): NotationAnalyzerInterface|string|array
     {
-        $controller = Str::replace([".php", "/"], [".php"=>"","/"=>"\\"], $controller);
+        $controller = Str::replace([ ".php" , "/" ] , [ ".php" => "" , "/" => "\\" ] , $controller);
         $controllerClass = new ReflectionClass("\App\\$controller");
 
-        /**@var Collection $docs**/
         $docs = Docs::notationArray($controllerClass);
 
-        if($docs->isEmpty()){
+        if ($docs->isEmpty()) {
             throw new ClassNotationNotFound();
         }
-        if(!in_array($docs->first(),['@API', '@Default', '@Inertia'])){
+        if (!in_array($docs->first() , [ '@API' , '@Default' , '@Inertia' ])) {
             throw  new ClassNotationRouteTypeNotFound();
         }
+
+        if (!preg_match("/@EasyRouting\\(.*\\)$/" , $docs->get(1) , $matches)) {
+            throw  new ClassNotationRouteTypeNotFound("You must place <comment> @EasyRouting(...)</comment>  after the api type");
+        }
+
+        $controllerType = $this->getControllerType($docs);
+        $controllerPath = Docs::getProperty('prefix' , $docs);
+        $controllerMiddlewares = Docs::getProperties("middlewares" , $docs);
+        $controllerBaseName = Docs::getProperty("name" , $docs);
+
+        RouteInfoFacade::setControllerType($controllerType)
+            ->setControllerDefaultPath($controllerPath)
+            ->setControllerMiddleware($controllerMiddlewares)
+            ->setControllerDefaultName($controllerBaseName);
 
         if ($this->nextAnalyzer) {
             return $this->nextAnalyzer->analyze($controllerClass);
         }
-        return "Class analysis results";
+        return RouteInfoFacade::getInfo();
     }
 
-    public function setSharedNotation(mixed $data): void
+    protected  function getControllerType(Collection $docs): string
     {
-        $this->data = $data;
-    }
-
-    public function getSharedNotation(): mixed
-    {
-        return  $this->data;
+        return Str::lower(Str::replace('@', '', $docs->first()));
     }
 }
