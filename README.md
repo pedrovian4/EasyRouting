@@ -61,3 +61,13 @@ Once your controllers are annotated, run the provided command to generate the ro
 ```bash
 php artisan easy:routing
 ```
+
+## Requiring  your easy routes
+
+You don't need to require every route generated you can just add the followiing code to yout "api.php" or "web.php"
+
+```php
+\Petcha\EasyRouting\Managers\RequireManager::requireEasyRoutes();
+```
+## License
+This project is open-sourced software licensed under the MIT license.
